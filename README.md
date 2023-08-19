@@ -40,9 +40,9 @@ The resulting `Site` that we simulate looks like this:
 ```
 
        West:  100RPS → Frontend                     LBCache → Database
-                                 ↘               ↗ 30%
+                                 ↘               ↗ 30%     10%
 Site:                               LoadBalancer
-                                 ↗               ↘ 70%
+                                 ↗               ↘ 70%     10%
        East:  100RPS → Frontend                     LBCache → Database
 
 ```

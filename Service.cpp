@@ -12,8 +12,8 @@ Service::Service(string name) {
 	cout << "Creating new Service: " << this->name << endl;
 }
 
-void Service::addDependency(Service *s) {
-	this->dependencies.push_back(s);
+void Service::addDependency(Service *s, float factor) {
+	this->dependencies.push_back(pair(s, factor));
 	cout << "Adding dependence: " << this->name << " -> " << s->name << endl;
 }
 
@@ -23,7 +23,7 @@ Service *Service::getService(string name) {
 	}
 
 	for (auto s = dependencies.begin(); s != dependencies.end(); s++) {
-		Service *search = (*s)->getService(name);
+		Service *search = (*s).first->getService(name);
 		if (search->name == name) {
 			return search;
 		}
@@ -36,8 +36,12 @@ void Service::printState() {
 	cout << "State for Service: " << this->name << endl;
 	cout << "  requests: " << this->requests << endl;
 	for (auto s = dependencies.begin(); s != dependencies.end(); s++) {
-		(*s)->printState();
+		s->first->printState();
 	}
+}
+
+int Service::getRPS(int rps, auto dependency) {
+	return rps * dependency->second;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -53,7 +57,7 @@ void RegionalService::doStep(int rps) {
 	cout << "  Total requests: " << this->requests << endl;
 	cout << "  Sending requests to dependencies" << endl;
 	for (auto s = dependencies.begin(); s != dependencies.end(); s++) {
-		(*s)->doStep(rps);
+		s->first->doStep(this->getRPS(rps, s));
 	}
 }
 
@@ -99,7 +103,7 @@ void LoadBalancedService::doStep(int rps) {
 			cout << "  Total requests: " << dest->requests << endl;
 			cout << "  Sending requests to dependencies" << endl;
 			for (auto s = dest->dependencies.begin(); s != dest->dependencies.end(); s++) {
-				(*s)->doStep(rps);
+				s->first->doStep(this->getRPS(rps, s));
 			}
 			break;
 		} else {
@@ -146,7 +150,7 @@ void LocalityService::doStep(int rps) {
 	cout << "  Total requests: " << dest->requests << endl;
 	cout << "  Sending requests to dependencies" << endl;
 	for (auto s = dest->dependencies.begin(); s != dest->dependencies.end(); s++) {
-		(*s)->doStep(rps);
+		s->first->doStep(this->getRPS(rps, s));
 	}
 }
 

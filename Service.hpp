@@ -13,14 +13,15 @@ class Region;
 class Service {
 	public:
 		string name;
-		vector<Service *> dependencies;
+		vector<pair<Service *, float> > dependencies;
 		int requests = 0;
 
 		Service(string name);
-		void addDependency(Service *s);
+		void addDependency(Service *s, float factor = 1.0);
 		Service *getService(string name);
 		virtual void doStep(int rps) {}
 		void printState();
+		int getRPS(int rps, auto dependency);
 };
 
 class RegionalService : public Service {

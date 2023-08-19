@@ -30,7 +30,7 @@ int main(int argc, char** argv) {
 
 		Service *cache = lbcache;
 		frontend->addDependency(cache);
-		cache->addDependency(database);
+		cache->addDependency(database, 0.1);
 
 		Stack *app = new Stack("App", frontend, 100);
 
@@ -51,7 +51,7 @@ int main(int argc, char** argv) {
 
 		Service *cache = lbcache;
 		frontend->addDependency(cache);
-		cache->addDependency(database);
+		cache->addDependency(database, 0.1);
 
 		Stack *app = new Stack("App", frontend, 100);
 
