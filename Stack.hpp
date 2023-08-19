@@ -15,23 +15,20 @@ class Stack {
 	public:
 		string name;
 		Service *source;  // TODO:  Make this a vector.
-		int rps;
 
-		Stack(string name, Service *source, int rps) : source(source) {
+		Stack(string name, Service *source) : source(source) {
 			this->name = name;
-			this->rps = rps;
 			cout << "Creating new Stack: " << this->name << endl;
 			cout << "  with source: " << this->source->name << endl;
-			cout << "  and RPS: " << this->rps << endl;
 		}
 
 		Service *getService(string name) {
 			return source->getService(name);
 		}
 
-		void doStep() {
+		void doStep(int rps) {
 			cout << "Doing step for Stack: " << this->name << endl;
-			source->doStep(this->rps);
+			source->doStep(rps);
 		}
 
 		void printState() {

@@ -33,16 +33,24 @@ Frontend → LBCache → Database
 
 We set up a simplistic data center infrastructure consisting of two `Regions`:
 **West** and **East**.  The regions are identical in their deployments of the
-**App** `Stack`.
+**App**.
+
+Two `Edge`s, **North** and **South**, send traffic to the **West** and **East**
+in different proportions.  Each edge's traffic follows a sinusoidal diurnal
+pattern (with the phases of **North** and **South** offset by π/2).
 
 The resulting `Site` that we simulate looks like this:
 
 ```
-
-       West:  100RPS → Frontend                     LBCache → Database
-                                 ↘               ↗ 30%     10%
-Site:                               LoadBalancer
-                                 ↗               ↘ 70%     10%
-       East:  100RPS → Frontend                     LBCache → Database
-
+                  50%
+               ┌─┬─ West:  Frontend                     LBCache → Database
+       North: ─┤ │25%                ↘               ↗ 30%     10%
+Site:          │ │                      LoadBalancer
+       South: ─┼─┤50%                ↗               ↘ 70%     10%
+               └─┴─ East:  Frontend                     LBCache → Database
+                  75%
 ```
+
+By default, the simulation in this example is set to simulate 12 hours of site
+operation and outputs verbose execution information as well as the final state
+of the site.

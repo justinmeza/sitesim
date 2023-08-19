@@ -36,10 +36,10 @@ class Region {
 			return nullptr;
 		}
 
-		void doStep() {
+		void doStep(int rps) {
 			cout << "Doing step for Region: " << this->name << endl;
 			for (auto s = stacks.begin(); s != stacks.end(); s++) {
-				(*s)->doStep();
+				(*s)->doStep(rps);
 			}
 		}
 

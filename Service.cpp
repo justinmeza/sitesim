@@ -119,7 +119,7 @@ void LoadBalancedService::doStep(int rps) {
 }
 
 void LoadBalancedService::addPolicy(string r, float p) {
-	this->policies.insert(pair<string, float>(r, p));
+	this->policies.insert(pair(r, p));
 }
 
 ///////////////////////////////////////////////////////////////////////////////

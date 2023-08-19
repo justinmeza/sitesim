@@ -7,6 +7,7 @@
 #include <map>
 
 #include "Region.hpp"
+#include "Edge.hpp"
 
 using namespace std;
 
@@ -14,6 +15,7 @@ class Site {
 	public:
 		string name;
 		vector<Region *> regions;
+		vector<Edge *> edges;
 
 		Site(string name) {
 			this->name = name;
@@ -25,6 +27,11 @@ class Site {
 			cout << "Adding Region: " << r->name << endl;
 		}
 
+		void addEdge(Edge *e) {
+			this->edges.push_back(e);
+			cout << "Adding Edge: " << e->name << endl;
+		}
+
 		Region *getRegion(string name) {
 			for (auto r = regions.begin(); r != regions.end(); r++) {
 				if ((*r)->name == name) {
@@ -34,10 +41,13 @@ class Site {
 			return nullptr;
 		}
 
-		void doStep() {
+		void doStep(int s) {
 			cout << "Doing step for Site: " << this->name << endl;
-			for (auto r = regions.begin(); r != regions.end(); r++) {
-				(*r)->doStep();
+			for (auto e = edges.begin(); e != edges.end(); e++) {
+				cout << "Visiting Edge: " << (*e)->name << endl;
+				for (auto r = regions.begin(); r != regions.end(); r++) {
+					(*r)->doStep((*e)->getRPS((*r)->name, s));
+				}
 			}
 		}
 

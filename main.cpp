@@ -7,6 +7,7 @@
 #include "Service.hpp"
 #include "Stack.hpp"
 #include "Region.hpp"
+#include "Edge.hpp"
 #include "Site.hpp"
 
 using namespace std;
@@ -32,7 +33,7 @@ int main(int argc, char** argv) {
 		frontend->addDependency(cache);
 		cache->addDependency(database, 0.1);
 
-		Stack *app = new Stack("App", frontend, 100);
+		Stack *app = new Stack("App", frontend);
 
 		west->addStack(app);
 	}
@@ -53,18 +54,30 @@ int main(int argc, char** argv) {
 		frontend->addDependency(cache);
 		cache->addDependency(database, 0.1);
 
-		Stack *app = new Stack("App", frontend, 100);
+		Stack *app = new Stack("App", frontend);
 
 		east->addStack(app);
 	}
 
+	Edge *north = new Edge("North", [](auto p) { return 50 + sin(p * 2 * PI) * 50; });
+	north->addMapping("West", 0.5);
+	north->addMapping("East", 0.5);
+
+	Edge *south = new Edge("South", [](auto p) { return 50 + cos(p * 2 * PI) * 50; });
+	south->addMapping("West", 0.25);
+	south->addMapping("East", 0.75);
+
 	site = new Site("Site");
+	site->addEdge(north);
+	site->addEdge(south);
 	site->addRegion(west);
 	site->addRegion(east);
 
-	auto steps = 100;
+	auto steps = 60 * 60 * 12;
 	for (int s = 0; s < steps; s++) {
-		site->doStep();
+		cout << "North RPS to West: " << north->getRPS("West", s) << endl;
+		cout << "South RPS to West: " << south->getRPS("West", s) << endl;
+		site->doStep(s);
 	}
 
 	cout << "Done with simulation!" << endl;
