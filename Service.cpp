@@ -7,8 +7,9 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-Service::Service(string name) {
+Service::Service(string name, int capacity) {
 	this->name = name;
+	this->capacity = capacity;
 	cout << "Creating new Service: " << this->name << endl;
 }
 
@@ -34,7 +35,9 @@ Service *Service::getService(string name) {
 
 void Service::printState() {
 	cout << "State for Service: " << this->name << endl;
-	cout << "  requests: " << this->requests << endl;
+	cout << "  requests:         " << this->requests << endl;
+	cout << "  max RPS:          " << this->rps_max << endl;
+	cout << "  max utilization:  " << this->util_max * 100.0 << "%" << endl;
 	for (auto s = dependencies.begin(); s != dependencies.end(); s++) {
 		s->first->printState();
 	}
@@ -42,6 +45,16 @@ void Service::printState() {
 
 int Service::getRPS(int rps, auto dependency) {
 	return rps * dependency->second;
+}
+
+void Service::updateStats(int rps) {
+	if (rps > this->rps_max) {
+		this->rps_max = rps;
+	}
+	float util = (float)rps / (float)capacity;
+	if (util > this->util_max) {
+		this->util_max = util;
+	}
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -53,6 +66,7 @@ int Service::getRPS(int rps, auto dependency) {
 void RegionalService::doStep(int rps) {
 	cout << "Doing step for RegionalService: " << this->name << endl;
 	this->requests += rps;
+	updateStats(rps);
 	cout << "  Serving " << rps << " requests" << endl;
 	cout << "  Total requests: " << this->requests << endl;
 	cout << "  Sending requests to dependencies" << endl;
@@ -97,6 +111,7 @@ void LoadBalancedService::doStep(int rps) {
 
 			cout << "Doing step for LoadBalancedService: " << this->name << endl;
 			dest->requests += rps;
+			updateStats(rps);
 			cout << "  in Region: " << r->name << endl;
 			cout << "  with probability: " << probability << endl;
 			cout << "  Serving " << rps << " requests" << endl;
@@ -144,6 +159,7 @@ void LocalityService::doStep(int rps) {
 
 	cout << "Doing step for LocalityService: " << this->name << endl;
 	dest->requests += rps;
+	updateStats(rps);
 	cout << "  in Region: " << r->name << endl;
 	cout << "  with pick: " << pick << endl;
 	cout << "  Serving " << rps << " requests" << endl;

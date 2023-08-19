@@ -15,18 +15,24 @@ class Service {
 		string name;
 		vector<pair<Service *, float> > dependencies;
 		int requests = 0;
+		int capacity;
 
-		Service(string name);
+		Service(string name, int capacity);
 		void addDependency(Service *s, float factor = 1.0);
 		Service *getService(string name);
 		virtual void doStep(int rps) {}
 		void printState();
 		int getRPS(int rps, auto dependency);
+		void updateStats(int rps);
+
+	private:
+		int rps_max = 0;
+		float util_max = 0.0;
 };
 
 class RegionalService : public Service {
 	public:
-		RegionalService(string name) : Service(name) {}
+		RegionalService(string name, int capacity) : Service(name, capacity) {}
 		map<string, float> policies;
 
 		void doStep(int rps);
@@ -34,7 +40,7 @@ class RegionalService : public Service {
 
 class LoadBalancedService : public Service {
 	public:
-		LoadBalancedService(string name) : Service(name) {}
+		LoadBalancedService(string name, int capacity) : Service(name, capacity) {}
 		map<string, float> policies;
 
 		void doStep(int rps);
@@ -43,7 +49,7 @@ class LoadBalancedService : public Service {
 
 class LocalityService : public Service {
 	public:
-		LocalityService(string name) : Service(name) {}
+		LocalityService(string name, int capacity) : Service(name, capacity) {}
 		vector<string> regions;
 
 		void doStep(int rps);
