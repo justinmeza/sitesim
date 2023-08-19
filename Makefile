@@ -1,2 +1,2 @@
 all:
-	clang++ -Wc++11-extensions main.cpp && ./a.out
+	clang++ -std=c++11 *.cpp && ./a.out
