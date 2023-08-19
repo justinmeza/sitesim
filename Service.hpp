@@ -40,4 +40,13 @@ class LoadBalancedService : public Service {
 		void addPolicy(string r, float p);
 };
 
+class LocalityService : public Service {
+	public:
+		LocalityService(string name) : Service(name) {}
+		vector<string> regions;
+
+		void doStep(int rps);
+		void addRegion(string r);
+};
+
 #endif  // SERVICE_HPP

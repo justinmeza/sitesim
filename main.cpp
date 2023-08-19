@@ -19,16 +19,18 @@ int main(int argc, char** argv) {
 	Region *west = new Region("West");
 	{
 		Service *frontend = new RegionalService("Frontend");
-		Service *cache = new RegionalService("Cache");
+		Service *rcache = new RegionalService("RCache");
 		LoadBalancedService *lbcache = new LoadBalancedService("LBCache");
 		lbcache->addPolicy("West", 0.3);
 		lbcache->addPolicy("East", 0.7);
+		LocalityService *lcache = new LocalityService("LCache");
+		lcache->addRegion("West");
+		lcache->addRegion("East");
 		Service *database = new RegionalService("Database");
 
-		//frontend->addDependency(cache);
-		//cache->addDependency(database);
-		frontend->addDependency(lbcache);
-		lbcache->addDependency(database);
+		Service *cache = lbcache;
+		frontend->addDependency(cache);
+		cache->addDependency(database);
 
 		Stack *app = new Stack("App", frontend, 100);
 
@@ -38,16 +40,18 @@ int main(int argc, char** argv) {
 	Region *east = new Region("East");
 	{
 		Service *frontend = new RegionalService("Frontend");
-		Service *cache = new RegionalService("Cache");
+		Service *rcache = new RegionalService("RCache");
 		LoadBalancedService *lbcache = new LoadBalancedService("LBCache");
 		lbcache->addPolicy("West", 0.3);
 		lbcache->addPolicy("East", 0.7);
+		LocalityService *lcache = new LocalityService("LCache");
+		lcache->addRegion("West");
+		lcache->addRegion("East");
 		Service *database = new RegionalService("Database");
 
-		//frontend->addDependency(cache);
-		//cache->addDependency(database);
-		frontend->addDependency(lbcache);
-		lbcache->addDependency(database);
+		Service *cache = lbcache;
+		frontend->addDependency(cache);
+		cache->addDependency(database);
 
 		Stack *app = new Stack("App", frontend, 100);
 

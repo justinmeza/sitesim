@@ -57,21 +57,15 @@ void RegionalService::doStep(int rps) {
 	}
 }
 
+extern Site *site;
+
 ///////////////////////////////////////////////////////////////////////////////
 //
 //  LoadBalancedService
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-extern Site *site;
-
 void LoadBalancedService::doStep(int rps) {
-	cout << "Doing step for LoadBalancedService: " << this->name << endl;
-	this->requests += rps;
-	cout << "  Serving " << rps << " requests" << endl;
-	cout << "  Total requests: " << this->requests << endl;
-	cout << "  Sending requests to dependencies" << endl;
-
 	const int FLOAT_MIN = 0;
 	const int FLOAT_MAX = 1;
 
@@ -98,10 +92,11 @@ void LoadBalancedService::doStep(int rps) {
 			selected = true;
 
 			cout << "Doing step for LoadBalancedService: " << this->name << endl;
+			dest->requests += rps;
 			cout << "  in Region: " << r->name << endl;
 			cout << "  with probability: " << probability << endl;
 			cout << "  Serving " << rps << " requests" << endl;
-			cout << "  Total requests: " << this->requests << endl;
+			cout << "  Total requests: " << dest->requests << endl;
 			cout << "  Sending requests to dependencies" << endl;
 			for (auto s = dest->dependencies.begin(); s != dest->dependencies.end(); s++) {
 				(*s)->doStep(rps);
@@ -121,4 +116,40 @@ void LoadBalancedService::doStep(int rps) {
 
 void LoadBalancedService::addPolicy(string r, float p) {
 	this->policies.insert(pair<string, float>(r, p));
+}
+
+///////////////////////////////////////////////////////////////////////////////
+//
+//  LocalityService
+//
+///////////////////////////////////////////////////////////////////////////////
+
+void LocalityService::doStep(int rps) {
+	const int FLOAT_MIN = 0;
+	const int FLOAT_MAX = 1;
+
+	std::random_device rd;
+	std::default_random_engine eng(rd());
+	std::uniform_real_distribution<float> distr(FLOAT_MIN, FLOAT_MAX);
+
+	float pick = distr(eng);
+
+	unsigned int selection = site->regions.size() * pick;
+	Region *r = site->regions[selection];
+	Service *dest = r->getService(this->name);
+
+	cout << "Doing step for LocalityService: " << this->name << endl;
+	dest->requests += rps;
+	cout << "  in Region: " << r->name << endl;
+	cout << "  with pick: " << pick << endl;
+	cout << "  Serving " << rps << " requests" << endl;
+	cout << "  Total requests: " << dest->requests << endl;
+	cout << "  Sending requests to dependencies" << endl;
+	for (auto s = dest->dependencies.begin(); s != dest->dependencies.end(); s++) {
+		(*s)->doStep(rps);
+	}
+}
+
+void LocalityService::addRegion(string r) {
+	this->regions.push_back(r);
 }
