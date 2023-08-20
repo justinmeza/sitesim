@@ -79,11 +79,11 @@ extern Site *site;
 
 ///////////////////////////////////////////////////////////////////////////////
 //
-//  LoadBalancedService
+//  BatchProcessingService
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-void LoadBalancedService::doStep(int rps) {
+void BatchProcessingService::doStep(int rps) {
 	const int FLOAT_MIN = 0;
 	const int FLOAT_MAX = 1;
 
@@ -101,7 +101,7 @@ void LoadBalancedService::doStep(int rps) {
 		if (pick < probability) {
 			// Route traffic to service in this region.
 			Region *r = site->getRegion(region);
-			Service *dest = r->getService(this->name);
+			BatchProcessingService *dest = (BatchProcessingService *)r->getService(this->name);
 			if (dest == nullptr) {
 				cout << "Unable to find service: " << this->name << endl;
 				cout << "Aborting!" << endl;
@@ -109,16 +109,22 @@ void LoadBalancedService::doStep(int rps) {
 			}
 			selected = true;
 
-			cout << "Doing step for LoadBalancedService: " << this->name << endl;
-			dest->requests += rps;
-			updateStats(rps);
-			cout << "  in Region: " << r->name << endl;
+			cout << "Doing step for BatchProcessingService: " << this->name << endl;
+			dest->sendRPS(rps);
+			cout << "  sending " << rps << " requests" << endl;
+			cout << "  to Region: " << r->name << endl;
 			cout << "  with probability: " << probability << endl;
-			cout << "  Serving " << rps << " requests" << endl;
-			cout << "  Total requests: " << dest->requests << endl;
+
+			// Handle this region's RPS.
+			int rps_total = recieveRPS();
+			cout << "  recieving " << rps_total << " requests" << endl;
+			this->requests += rps_total;
+			this->updateStats(rps_total);
+			cout << "  Serving " << rps_total << " requests" << endl;
+			cout << "  Total requests: " << this->requests << endl;
 			cout << "  Sending requests to dependencies" << endl;
 			for (auto s = dest->dependencies.begin(); s != dest->dependencies.end(); s++) {
-				s->first->doStep(this->getRPS(rps, s));
+				s->first->doStep(this->getRPS(rps_total, s));
 			}
 			break;
 		} else {
@@ -133,8 +139,73 @@ void LoadBalancedService::doStep(int rps) {
 	}
 }
 
+void BatchProcessingService::addPolicy(string r, float p) {
+	this->policies.insert(pair(r, p));
+}
+
+void BatchProcessingService::sendRPS(int r) {
+	this->rps_acc += r;
+}
+
+int BatchProcessingService::recieveRPS() {
+	int rps = this->rps_acc;
+	this->rps_acc = 0;
+	return rps;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+//
+//  LoadBalancedService
+//
+///////////////////////////////////////////////////////////////////////////////
+
+void LoadBalancedService::doStep(int rps) {
+	// Send proportion of traffic to different regions.
+	for (auto p = policies.begin(); p != policies.end(); p++) {
+		string region = p->first;
+		float proportion = p->second;
+
+		Region *r = site->getRegion(region);
+		LoadBalancedService *dest = (LoadBalancedService *)r->getService(this->name);
+		if (dest == nullptr) {
+			cout << "Unable to find service: " << this->name << endl;
+			cout << "Aborting!" << endl;
+			exit(1);
+		}
+
+		cout << "Doing step for LoadBalancedService: " << this->name << endl;
+		int rps_prop = proportion * rps;
+		dest->sendRPS(rps_prop);
+		cout << "  sending " << rps_prop << " requests" << endl;
+		cout << "  to Region: " << r->name << endl;
+		cout << "  with proportion: " << proportion << endl;
+	}
+
+	// Handle this region's RPS.
+	int rps_total = recieveRPS();
+	cout << "  recieving " << rps_total << " requests" << endl;
+	this->requests += rps_total;
+	this->updateStats(rps_total);
+	cout << "  Serving " << rps_total << " requests" << endl;
+	cout << "  Total requests: " << this->requests << endl;
+	cout << "  Sending requests to dependencies" << endl;
+	for (auto s = dependencies.begin(); s != dependencies.end(); s++) {
+		s->first->doStep(this->getRPS(rps_total, s));
+	}
+}
+
 void LoadBalancedService::addPolicy(string r, float p) {
 	this->policies.insert(pair(r, p));
+}
+
+void LoadBalancedService::sendRPS(int r) {
+	this->rps_acc += r;
+}
+
+int LoadBalancedService::recieveRPS() {
+	int rps = this->rps_acc;
+	this->rps_acc = 0;
+	return rps;
 }
 
 ///////////////////////////////////////////////////////////////////////////////

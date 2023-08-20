@@ -43,11 +43,13 @@ class Site {
 
 		void doStep(int s) {
 			cout << "Doing step for Site: " << this->name << endl;
-			for (auto e = edges.begin(); e != edges.end(); e++) {
-				cout << "Visiting Edge: " << (*e)->name << endl;
-				for (auto r = regions.begin(); r != regions.end(); r++) {
-					(*r)->doStep((*e)->getRPS((*r)->name, s));
+			// For each region, aggregate and serve edge RPS.
+			for (auto r = regions.begin(); r != regions.end(); r++) {
+				int rps = 0;
+				for (auto e = edges.begin(); e != edges.end(); e++) {
+					rps += (*e)->getRPS((*r)->name, s);
 				}
+				(*r)->doStep(rps);
 			}
 		}
 

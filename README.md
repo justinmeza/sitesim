@@ -42,13 +42,13 @@ pattern (with the phases of **North** and **South** offset by π/2).
 The resulting `Site` that we simulate looks like this:
 
 ```
-                  50%
+                25%
                ┌─┬─ West:  Frontend                     LBCache → Database
-       North: ─┤ │25%                ↘               ↗ 30%     10%
+       North: ─┤ │                   ↘               ↗ 75%     10%
 Site:          │ │                      LoadBalancer
-       South: ─┼─┤50%                ↗               ↘ 70%     10%
+       South: ─┼─┤                   ↗               ↘ 25%     10%
                └─┴─ East:  Frontend                     LBCache → Database
-                  75%
+                75%
 ```
 
 By default, the simulation in this example is set to simulate 12 hours of site

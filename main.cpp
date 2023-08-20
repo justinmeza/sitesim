@@ -20,14 +20,14 @@ int main(int argc, char** argv) {
 	Region *west = new Region("West");
 	{
 		Service *frontend = new RegionalService("Frontend", 100);
-		Service *rcache = new RegionalService("RCache", 100);
-		LoadBalancedService *lbcache = new LoadBalancedService("LBCache", 100);
-		lbcache->addPolicy("West", 0.3);
-		lbcache->addPolicy("East", 0.7);
-		LocalityService *lcache = new LocalityService("LCache", 100);
+		Service *rcache = new RegionalService("RCache", 300);
+		LoadBalancedService *lbcache = new LoadBalancedService("LBCache", 300);
+		lbcache->addPolicy("West", 0.75);
+		lbcache->addPolicy("East", 0.25);
+		LocalityService *lcache = new LocalityService("LCache", 300);
 		lcache->addRegion("West");
 		lcache->addRegion("East");
-		Service *database = new RegionalService("Database", 100);
+		Service *database = new RegionalService("Database", 10 + 20);
 
 		Service *cache = lbcache;
 		frontend->addDependency(cache);
@@ -40,15 +40,15 @@ int main(int argc, char** argv) {
 
 	Region *east = new Region("East");
 	{
-		Service *frontend = new RegionalService("Frontend", 100);
+		Service *frontend = new RegionalService("Frontend", 300);
 		Service *rcache = new RegionalService("RCache", 100);
 		LoadBalancedService *lbcache = new LoadBalancedService("LBCache", 100);
-		lbcache->addPolicy("West", 0.3);
-		lbcache->addPolicy("East", 0.7);
+		lbcache->addPolicy("West", 0.75);
+		lbcache->addPolicy("East", 0.25);
 		LocalityService *lcache = new LocalityService("LCache", 100);
 		lcache->addRegion("West");
 		lcache->addRegion("East");
-		Service *database = new RegionalService("Database", 100);
+		Service *database = new RegionalService("Database", 30);
 
 		Service *cache = lbcache;
 		frontend->addDependency(cache);
@@ -59,11 +59,11 @@ int main(int argc, char** argv) {
 		east->addStack(app);
 	}
 
-	Edge *north = new Edge("North", [](auto p) { return 50 + sin(p * 2 * PI) * 50; });
-	north->addMapping("West", 0.5);
-	north->addMapping("East", 0.5);
+	Edge *north = new Edge("North", [](auto p) { return 250 + sin(p * 2.0 * PI) * 50; });
+	north->addMapping("West", 0.25);
+	north->addMapping("East", 0.75);
 
-	Edge *south = new Edge("South", [](auto p) { return 50 + cos(p * 2 * PI) * 50; });
+	Edge *south = new Edge("South", [](auto p) { return 50 + cos(p * 2.0 * PI) * 50; });
 	south->addMapping("West", 0.25);
 	south->addMapping("East", 0.75);
 
@@ -73,10 +73,12 @@ int main(int argc, char** argv) {
 	site->addRegion(west);
 	site->addRegion(east);
 
-	auto steps = 60 * 60 * 12;
+	auto steps = 60 * 60 * 6;
 	for (int s = 0; s < steps; s++) {
 		cout << "North RPS to West: " << north->getRPS("West", s) << endl;
+		cout << "North RPS to East: " << north->getRPS("East", s) << endl;
 		cout << "South RPS to West: " << south->getRPS("West", s) << endl;
+		cout << "South RPS to East: " << south->getRPS("East", s) << endl;
 		site->doStep(s);
 	}
 

@@ -38,6 +38,20 @@ class RegionalService : public Service {
 		void doStep(int rps);
 };
 
+class BatchProcessingService : public Service {
+	public:
+		BatchProcessingService(string name, int capacity) : Service(name, capacity) {}
+		map<string, float> policies;
+
+		void doStep(int rps);
+		void addPolicy(string r, float p);
+		void sendRPS(int rps);
+		int recieveRPS();
+
+	private:
+		int rps_acc = 0;
+};
+
 class LoadBalancedService : public Service {
 	public:
 		LoadBalancedService(string name, int capacity) : Service(name, capacity) {}
@@ -45,6 +59,11 @@ class LoadBalancedService : public Service {
 
 		void doStep(int rps);
 		void addPolicy(string r, float p);
+		void sendRPS(int rps);
+		int recieveRPS();
+
+	private:
+		int rps_acc = 0;
 };
 
 class LocalityService : public Service {

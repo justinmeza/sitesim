@@ -16,7 +16,7 @@ class Edge {
 		Edge(string name, auto demand) {
 			this->name = name;
 			this->demand = demand;
-			cout << "Creating new Edgo: " << this->name << endl;
+			cout << "Creating new Edge: " << this->name << endl;
 		}
 
 		void addMapping(string r, float p) {
@@ -26,7 +26,7 @@ class Edge {
 		}
 
 		int getRPS(string r, int s) {
-			return this->demand(mappings.at(r) * (float)s / 60 / 60 / 24);
+			return mappings.at(r) * this->demand((float)(s % (60 * 60 * 24)) / 60 / 60 / 24);
 		}
 };
 
